@@ -43,7 +43,7 @@ const explicitlyUseWebGL1 = (location.search.indexOf('webgl1') != -1);
 // When hosting UE4 builds live on a production CDN, compression should always be enabled,
 // since uncompressed files are too huge to be downloaded over the web.
 // Please view tip in "Project Setting" for more information.
-const serveCompressedAssets = true;
+const serveCompressedAssets = false;
 
 // "Project Settings" -> Project -> Packaging -> "Use Pak File"
 // For the large .data file, there's two ways to manage compression: either UE4 UnrealPak tool can compress it in engine, or

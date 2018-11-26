@@ -42,6 +42,18 @@
 </div>
 <div class="texthalf text-normal jumbotron " id="logwindow" style='display:none'></div>
 
+</br>
+
+<H2>Explanation</H2>
+
+<p>Given vectors A and B I want to calculate a rotation, C, that rotates from A to B. In the example above, C is calculated every tick and applied to the vive controller. 
+In this example, B is oriented along positive-x and rotates around the y-axis over time. Observe that under certain opposite directions between A and B, C displays a sudden roll/twist. 
+Why does this artifact occur, and how can I prevent it to get a smooth rotation around the full range of motion?</p>
+
+</br>
+
+<p>Source for this repository is on my <a href="https://github.com/lukehb/ProblematicUE4Rotations-MWE">GitHub</a>, the rotation calculation code is <a href="https://github.com/lukehb/ProblematicUE4Rotations-MWE/blob/master/Source/mwe/Private/MWEUtil.cpp">here</a></p>
+
 <script src="mwe-HTML5-Shipping.UE4.js"></script>
 </body>
 </html>

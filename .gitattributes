@@ -6,3 +6,4 @@
 HTML5/ filter=lfs diff=lfs merge=lfs -text
 *.uproject filter=lfs diff=lfs merge=lfs -text
 HTML5/** filter=lfs diff=lfs merge=lfs -text
+docs/** filter=lfs diff=lfs merge=lfs -text

@@ -46,9 +46,9 @@
 
 <H2>Explanation</H2>
 
-<p>Given vectors A and B I want to calculate a rotation, C, that rotates from A to B. In the example above, C is calculated every tick and applied to the vive controller. 
+<p>Given a rotation as a quaternion, A, and a direction as a vector, B, calculate a rotation, C, that will rotate A to point in the direction of B. In the example above, C is calculated every tick and applied to the vive controller. 
 In this example, B is oriented along positive-x and rotates around the y-axis over time. Observe that under certain opposite directions between A and B, C displays a sudden roll/twist. 
-Why does this artifact occur, and how can I prevent it to get a smooth rotation around the full range of motion?</p>
+Why does this artifact occur? Why does it only occur once, not twice (the cross product between the two vectors transitions hemispheres twice is a full rotation)?</p>
 
 </br>
 

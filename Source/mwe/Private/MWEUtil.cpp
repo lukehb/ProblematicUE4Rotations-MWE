@@ -1,20 +1,46 @@
 #include "MWEUtil.h"
 #include "Engine.h"
 
-FRotator UMWEUtil::FindNewRotation(FRotator OriginalRot, FVector NewDir)
+FTransform UMWEUtil::FindNewRotation(FTransform A, FVector BDir)
 {
-	FQuat OrigQuat = OriginalRot.Quaternion();
-	FVector OrigDir = OrigQuat.GetForwardVector();
+	FQuat AQuat = A.GetRotation();
+	FVector ADir = AQuat.GetForwardVector();
 
-	OrigDir.Normalize();
-	NewDir.Normalize();
-	FVector AxisOfRotation = FVector::CrossProduct(OrigDir, NewDir).GetSafeNormal();
-	float Rads = FMath::Acos(FVector::DotProduct(OrigDir, NewDir));
+	ADir.Normalize();
+	BDir.Normalize();
+
+	FVector AxisOfRotation = FVector::CrossProduct(ADir, BDir).GetSafeNormal();
+	float Rads = FMath::Acos(FVector::DotProduct(ADir, BDir));
 	FQuat DeltaRot(AxisOfRotation, Rads);
 
-	FQuat EndRot = DeltaRot * OrigQuat;
+	FQuat C = DeltaRot * AQuat;
 
-	return EndRot.Rotator();
+	return FTransform(C);
+}
+
+FTransform UMWEUtil::FindNewRotation2(FTransform A, FVector BDir)
+{
+	FQuat AQuat = A.GetRotation();
+	FVector ADir = AQuat.GetForwardVector();
+
+	ADir.Normalize();
+	BDir.Normalize();
+
+	FVector AxisOfRotation = FVector::CrossProduct(ADir, BDir).GetSafeNormal();
+	float Rads = FMath::Acos(FVector::DotProduct(ADir, BDir));
+	FQuat DeltaRot(AxisOfRotation, Rads);
+
+	FQuat C = DeltaRot * AQuat;
+
+	FQuat OutSwing;
+	FQuat OutTwist;
+
+	C.ToSwingTwist(FVector::ForwardVector, OutSwing, OutTwist);
+
+	//float TwistRads = OutTwist.GetAngle();
+	//UE_LOG(LogTemp, Warning, TEXT("Twist %f"), TwistRads);
+
+	return FTransform(OutSwing);
 }
 
 void UMWEUtil::DrawArc(UObject * WorldContextObject, FVector A, FVector B, FVector RefOrigin, int NSegments, FColor Color, float SphereRadius, float Thickness, float LifeTime)

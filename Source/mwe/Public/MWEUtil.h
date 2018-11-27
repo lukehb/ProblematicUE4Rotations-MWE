@@ -17,7 +17,10 @@ class MWE_API UMWEUtil : public UBlueprintFunctionLibrary
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "MWE Utility")
-	static FRotator FindNewRotation(FRotator OriginalRot, FVector NewDir);
+	static FTransform FindNewRotation(FTransform A, FVector BDir);
+
+	UFUNCTION(BlueprintCallable, Category = "MWE Utility")
+	static FTransform FindNewRotation2(FTransform A, FVector BDir);
 
 	UFUNCTION(BlueprintCallable, Category = "MWE Utility")
 	static void DrawArc(UObject* WorldContextObject, FVector A, FVector B, FVector RefOrigin, int NSegments, FColor Color, float SphereRadius, float Thickness, float LifeTime);

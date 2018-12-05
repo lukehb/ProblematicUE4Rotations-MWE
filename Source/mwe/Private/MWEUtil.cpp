@@ -71,8 +71,17 @@ FTransform UMWEUtil::FindNewRotation2(FTransform A, FVector BDir)
 		//yaw (project onto plane with z normal)
 		{
 			FVector ADirPitched = FRotationMatrix(ARot).GetScaledAxis(EAxis::X);
+			FVector BDirMod = BDir;
+
+			//opposite directions
+			float Dot = FVector::DotProduct(FVector::ForwardVector, BDir);
+			if (Dot < 0.0f)
+			{
+				BDirMod = -BDir;
+			}
+
 			FVector AProjZ = FVector(ADirPitched.X, ADirPitched.Y, 0.0f).GetSafeNormal();
-			FVector BProjZ = FVector(BDir.X, BDir.Y, 0.0f).GetSafeNormal();
+			FVector BProjZ = FVector(BDirMod.X, BDirMod.Y, 0.0f).GetSafeNormal();
 			float YawDegs = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(AProjZ, BProjZ)));
 
 			//get the sign of the yaw

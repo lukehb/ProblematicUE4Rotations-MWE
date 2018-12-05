@@ -23,6 +23,11 @@ public:
 	static FTransform FindNewRotation2(FTransform A, FVector BDir);
 
 	UFUNCTION(BlueprintCallable, Category = "MWE Utility")
+	static float CalculateTwist(FTransform A, FVector TwistAxis);
+
+	UFUNCTION(BlueprintCallable, Category = "MWE Utility")
 	static void DrawArc(UObject* WorldContextObject, FVector A, FVector B, FVector RefOrigin, int NSegments, FColor Color, float SphereRadius, float Thickness, float LifeTime);
+
+	static FVector Perpendicular(FVector X);
 
 };

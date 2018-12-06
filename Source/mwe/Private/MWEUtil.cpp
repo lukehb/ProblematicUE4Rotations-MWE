@@ -20,141 +20,53 @@ FTransform UMWEUtil::FindNewRotation(FTransform A, FVector BDir)
 
 FTransform UMWEUtil::FindNewRotation2(FTransform A, FVector BDir)
 {
-	//FQuat AQuat = A.Rot .GetRotation();
-	FVector ADir = A.TransformVectorNoScale(FVector::ForwardVector); //AQuat.GetForwardVector();
-
-	ADir.Normalize();
+	
+	
 	BDir.Normalize();
 
 	FRotator ARot = A.Rotator();
+	FVector ADir = A.TransformVectorNoScale(FVector::ForwardVector);
 
-	//if BDir is aligned with an axis, do either of the other two axes first
+	//if BDir is aligned with z
 	if (FMath::IsNearlyEqual(FMath::Abs(FVector::DotProduct(BDir, FVector::UpVector)), 1.0f, 0.01f))
 	{
-		//yaw (project onto plane with z normal)
+		if (FMath::IsNearlyEqual(FMath::Abs(FVector::DotProduct(ADir, FVector::UpVector)), 1.0f, 0.01f))
 		{
-			FVector ADirPitched = FRotationMatrix(ARot).GetScaledAxis(EAxis::X);
-			FVector AProjZ = FVector(ADirPitched.X, ADirPitched.Y, 0.0f).GetSafeNormal();
-			FVector BProjZ = FVector::ForwardVector;
-			float YawDegs = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(AProjZ, BProjZ)));
-
-			//get the sign of the yaw
-			if (FVector::DotProduct(FVector::UpVector, FVector::CrossProduct(AProjZ, BProjZ)) < 0.0f)
-			{
-				YawDegs = -YawDegs;
-			}
-
-			//apply yaw to ARot
-			ARot.Yaw += YawDegs;
+			PitchToDirection(ARot, BDir);
+			YawToDirection(ARot, BDir);
+		}
+		else
+		{
+			YawToDirection(ARot, FVector::ForwardVector);
+			PitchToDirection(ARot, BDir);
 		}
 
-		//pitch (project onto plane with y normal)
-		{
-			FVector ADirOrig = FRotationMatrix(ARot).GetScaledAxis(EAxis::X);
-			FVector AProjY = FVector(ADirOrig.X, 0.0f, ADirOrig.Z).GetSafeNormal();
-			FVector BProjY = FVector(BDir.X, 0.0f, BDir.Z).GetSafeNormal();
-
-			float PitchDegs = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(AProjY, BProjY)));
-
-			//get the sign of the pitch
-			if (FVector::DotProduct(-FVector::RightVector, FVector::CrossProduct(AProjY, BProjY)) < 0.0f)
-			{
-				PitchDegs = -PitchDegs;
-			}
-
-			//apply the pitch to ARot
-			ARot.Pitch += PitchDegs;
-		}
+		
 	}
 	else
 	{
-		//yaw (project onto plane with z normal)
-		{
-			FVector ADirPitched = FRotationMatrix(ARot).GetScaledAxis(EAxis::X);
-			FVector BDirMod = BDir;
+		
 
+		//ADir is aligned with z
+		if (FMath::IsNearlyEqual(FMath::Abs(FVector::DotProduct(ADir, FVector::UpVector)), 1.0f, 0.01f))
+		{
+			PitchToDirection(ARot, BDir);
+			YawToDirection(ARot, BDir);
+		}
+		else
+		{
 			//opposite directions
+			FVector BDirMod = BDir;
 			float Dot = FVector::DotProduct(FVector::ForwardVector, BDir);
 			if (Dot < 0.0f)
 			{
 				BDirMod = -BDir;
 			}
 
-			FVector AProjZ = FVector(ADirPitched.X, ADirPitched.Y, 0.0f).GetSafeNormal();
-			FVector BProjZ = FVector(BDirMod.X, BDirMod.Y, 0.0f).GetSafeNormal();
-			float YawDegs = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(AProjZ, BProjZ)));
-
-			//get the sign of the yaw
-			if (FVector::DotProduct(FVector::UpVector, FVector::CrossProduct(AProjZ, BProjZ)) < 0.0f)
-			{
-				YawDegs = -YawDegs;
-			}
-
-			//apply yaw to ARot
-			ARot.Yaw += YawDegs;
+			YawToDirection(ARot, BDirMod);
+			PitchToDirection(ARot, BDir);
 		}
-
-
-		//pitch (project onto plane with y normal)
-		{
-			FVector ADirOrig = FRotationMatrix(ARot).GetScaledAxis(EAxis::X);
-			FVector AProjY = FVector(ADirOrig.X, 0.0f, ADirOrig.Z).GetSafeNormal();
-			FVector BProjY = FVector(BDir.X, 0.0f, BDir.Z).GetSafeNormal();
-
-			float PitchDegs = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(AProjY, BProjY)));
-
-			//get the sign of the pitch
-			if (FVector::DotProduct(-FVector::RightVector, FVector::CrossProduct(AProjY, BProjY)) < 0.0f)
-			{
-				PitchDegs = -PitchDegs;
-			}
-
-			//apply the pitch to ARot
-			ARot.Pitch += PitchDegs;
-		}
-
 	}
-
-	
-
-	
-	//float OverPitchDegs = 0.0f;
-
-	////over-pitch (to protect against singularity)
-	//bool bDidOverpitch = false;
-	//float PitchDot = FMath::Abs(FVector::DotProduct(ADirPitched, FVector::UpVector));
-	//if (FMath::IsNearlyEqual(PitchDot, 1.0f, 0.01f))
-	//{
-	//	float Signum = FVector::DotProduct(ADir, ADirPitched);
-	//	Signum = Signum >= 0.0f ? 1.0f : -1.0f;
-
-	//	bDidOverpitch = true;
-	//	OverPitchDegs = Signum * 15.0f; //many non-zero numbers could work here
-	//	ARot.Pitch += OverPitchDegs;
-	//	ARot.Yaw += OverPitchDegs;
-	//	ADirPitched = FRotationMatrix(ARot).GetScaledAxis(EAxis::X);
-	//}
-
-	
-
-	//if we need to, do over-pitch correction now
-	//if (bDidOverpitch)
-	//{
-	//	//FVector ADirYawed = FRotationMatrix(ARot).GetScaledAxis(EAxis::X);
-	//	//FVector AProjY = FVector(ADirYawed.X, 0.0f, ADirYawed.Z).GetSafeNormal();
-	//	//FVector BProjY = FVector(BDir.X, 0.0f, BDir.Z).GetSafeNormal();
-
-	//	//float PitchDegs = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(AProjY, BProjY)));
-
-	//	////get the sign of the pitch
-	//	//if (FVector::DotProduct(-FVector::RightVector, FVector::CrossProduct(AProjY, BProjY)) < 0.0f)
-	//	//{
-	//	//	PitchDegs = -PitchDegs;
-	//	//}
-
-	//	//apply the pitch to ARot
-	//	ARot.Pitch -= OverPitchDegs;
-	//}
 
 
 	return FTransform(ARot);
@@ -285,4 +197,40 @@ FVector UMWEUtil::Perpendicular(FVector X)
 		TEXT("The computed vector was not perpendicular. Debugging required."));
 
 	return Y;
+}
+
+void UMWEUtil::PitchToDirection(FRotator& Rotation, FVector TargetDirection)
+{
+	FVector SourceDirection = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
+	FVector SourceProjY = FVector(SourceDirection.X, 0.0f, SourceDirection.Z).GetSafeNormal();
+	FVector TargetProjY = FVector(TargetDirection.X, 0.0f, TargetDirection.Z).GetSafeNormal();
+
+	float PitchDegs = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(SourceProjY, TargetProjY)));
+
+	//get the sign of the pitch
+	if (FVector::DotProduct(-FVector::RightVector, FVector::CrossProduct(SourceProjY, TargetProjY)) < 0.0f)
+	{
+		PitchDegs = -PitchDegs;
+	}
+
+	//apply the pitch
+	Rotation.Pitch += PitchDegs;
+}
+
+void UMWEUtil::YawToDirection(FRotator& Rotation, FVector TargetDirection)
+{
+	FVector SourceDirection = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
+	FVector SourceProjZ = FVector(SourceDirection.X, SourceDirection.Y, 0.0f).GetSafeNormal();
+	FVector TargetProjZ = FVector(TargetDirection.X, TargetDirection.Y, 0.0f).GetSafeNormal();
+
+	float YawDegs = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(SourceProjZ, TargetProjZ)));
+
+	//get the sign of the yaw
+	if (FVector::DotProduct(FVector::UpVector, FVector::CrossProduct(SourceProjZ, TargetProjZ)) < 0.0f)
+	{
+		YawDegs = -YawDegs;
+	}
+
+	//apply yaw to ARot
+	Rotation.Yaw += YawDegs;
 }

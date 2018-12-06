@@ -30,4 +30,8 @@ public:
 
 	static FVector Perpendicular(FVector X);
 
+	static void PitchToDirection(FRotator& Rotation, FVector TargetDirection);
+
+	static void YawToDirection(FRotator& Rotation, FVector TargetDirection);
+
 };

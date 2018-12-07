@@ -23,6 +23,12 @@ public:
 	static FTransform FindNewRotation2(FTransform A, FVector BDir);
 
 	UFUNCTION(BlueprintCallable, Category = "MWE Utility")
+	static FTransform FindNewRotation3(FTransform A, FVector BDir);
+
+	UFUNCTION(BlueprintCallable, Category = "MWE Utility")
+	static FTransform FindNewRotation4(FTransform A, FVector BDir);
+
+	UFUNCTION(BlueprintCallable, Category = "MWE Utility")
 	static float CalculateTwist(FTransform A, FVector TwistAxis);
 
 	UFUNCTION(BlueprintCallable, Category = "MWE Utility")

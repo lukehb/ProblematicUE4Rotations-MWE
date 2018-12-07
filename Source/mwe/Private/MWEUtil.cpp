@@ -37,7 +37,7 @@ FTransform UMWEUtil::FindNewRotation2(FTransform A, FVector BDir)
 		}
 		else
 		{
-			YawToDirection(ARot, FVector::ForwardVector);
+			YawToDirection(ARot, FVector(ADir.X, 0.0f, 0.0f));
 			PitchToDirection(ARot, BDir);
 		}
 
@@ -50,26 +50,107 @@ FTransform UMWEUtil::FindNewRotation2(FTransform A, FVector BDir)
 		//ADir is aligned with z
 		if (FMath::IsNearlyEqual(FMath::Abs(FVector::DotProduct(ADir, FVector::UpVector)), 1.0f, 0.01f))
 		{
-			PitchToDirection(ARot, BDir);
 			YawToDirection(ARot, BDir);
+			PitchToDirection(ARot, BDir);
 		}
 		else
 		{
-			//opposite directions
-			FVector BDirMod = BDir;
+			
+			
+
+			//same hemisphere
 			float Dot = FVector::DotProduct(FVector::ForwardVector, BDir);
-			if (Dot < 0.0f)
+			if (Dot > 0.0f)
 			{
-				BDirMod = -BDir;
+				YawToDirection(ARot, BDir);
+				PitchToDirection(ARot, BDir);
+			}
+			//opposite hemisphere
+			else
+			{
+				PitchToDirection(ARot, BDir);
+				YawToDirection(ARot, BDir);
 			}
 
-			YawToDirection(ARot, BDirMod);
-			PitchToDirection(ARot, BDir);
+			
+			
+			
 		}
 	}
 
 
 	return FTransform(ARot);
+}
+
+FTransform UMWEUtil::FindNewRotation3(FTransform A, FVector BDir)
+{
+	//Flip the quat
+	FQuat AQuat = A.GetRotation();
+
+	FVector AFwd = AQuat.GetForwardVector();
+	FVector AUp = AQuat.GetUpVector();
+	
+	BDir.Normalize();
+	FVector AxisOfRotation = FVector::CrossProduct(AFwd, BDir).GetSafeNormal();
+
+	//question. there exists a variable amount of roll that an object undergoes depending on how aligned its reference axis is to the axis of rotation
+	//float CounterRollFactor = 1.0f - FMath::Abs(FVector::DotProduct(AxisOfRotation, AUp));
+	//apply counter roll
+	//AQuat = FQuat(AFwd, PI * CounterRollFactor) * AQuat;
+
+	float Dot = FVector::DotProduct(AFwd, BDir);
+
+	//opposite hemispheres
+	if (Dot < 0.0f)
+	{
+		
+		AQuat = FQuat(AUp, PI) * FQuat(AFwd, PI) * AQuat;
+		//return FTransform(FlipQuat);
+	}
+
+	
+	FVector ADir = AQuat.GetForwardVector();
+	AxisOfRotation = FVector::CrossProduct(ADir, BDir).GetSafeNormal();
+	float Rads = FMath::Acos(FVector::DotProduct(ADir, BDir));
+	FQuat DeltaRot(AxisOfRotation, Rads);
+
+	FQuat C = DeltaRot * AQuat;
+
+
+	return FTransform(C);
+
+
+
+}
+
+FTransform UMWEUtil::FindNewRotation4(FTransform A, FVector BDir)
+{
+	BDir.Normalize();
+
+	FVector ADir = A.TransformVectorNoScale(FVector::ForwardVector);
+	//FVector UpDir = A.TransformVectorNoScale(FVector::UpVector);
+	FVector RightDir = A.TransformVectorNoScale(FVector::RightVector);
+
+	//float UpDot = FMath::Abs(FVector::DotProduct(UpDir, BDir));
+	//if (UpDot > 0.75f)
+	//{
+	//	//use right
+	//	FVector RightDir = A.TransformVectorNoScale(FVector::RightVector);
+	//	FMatrix Mat = FRotationMatrix::MakeFromXY(BDir, RightDir);
+	//	return FTransform(Mat);
+
+	//}
+
+	//float FwdDot = FVector::DotProduct(ADir, BDir);
+
+	//if (FwdDot < 0.0f)
+	//{
+	//	UpDir = -UpDir;
+	//}
+
+
+	FMatrix Mat = FRotationMatrix::MakeFromXY(BDir, RightDir);
+	return FTransform(Mat);
 }
 
 float UMWEUtil::CalculateTwist(FTransform A, FVector TwistAxis)
@@ -209,6 +290,12 @@ void UMWEUtil::PitchToDirection(FRotator& Rotation, FVector TargetDirection)
 
 	//get the sign of the pitch
 	if (FVector::DotProduct(-FVector::RightVector, FVector::CrossProduct(SourceProjY, TargetProjY)) < 0.0f)
+	{
+		PitchDegs = -PitchDegs;
+	}
+
+	//if yaw is  greater than 90/-90 then pitching is in the opposite direction
+	if (Rotation.Yaw >= 90.0f || Rotation.Yaw <= -90.0f)
 	{
 		PitchDegs = -PitchDegs;
 	}
